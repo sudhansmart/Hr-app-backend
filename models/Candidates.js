@@ -25,11 +25,13 @@ const commonFieldsSchema = new mongoose.Schema({
     vendorName: { type: String },
     interviewStatus: { type: String },
     interviewdate: { type: Date },
+    interviewTime: { type: String },
     remark1: { type: String },
     remark2: { type: String },
     interviewFinalStatus: { type: String },
     interviewFinalRemark: { type: String },
     shortlistedDate: { type: Date },
+    ShortlistRecruiterRemark: { type: String },
     offerStatus: { type: String },
     offerReleasedDate: { type:String },
     shortlistRemark: { type: String },
@@ -99,13 +101,16 @@ const accentureSchema = new mongoose.Schema({
     sourceNameVendor: { type: String }
 }, { _id: false });
 
+
+
 // Main schema combining common fields and company-specific fields
 const candidateSchema = new mongoose.Schema({
     common: commonFieldsSchema,
     infosys: infosysSchema,
     wipro1: wipro1Schema,
     wipro2: wipro2Schema,
-    accenture: accentureSchema
+    accenture: accentureSchema,
+    other: { type: mongoose.Schema.Types.Mixed }
 });
 
 const Candidate = mongoose.model('Candidate', candidateSchema);

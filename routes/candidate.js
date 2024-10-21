@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Candidate = require('../models/Candidates');
+const PersonalTracker = require('../models/PersonalTracker')
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
@@ -26,10 +27,24 @@ const upload = multer({ storage });
   // Route to handle file upload
   router.post('/add', upload.single('file'), async (req, res) => {
     const file = req.file;
-    const data = req.body;
-    console.log(file);
-    console.log(data);
-    try {
+   
+    const data = { ...req.body }; // Spread req.body into a new object
+
+  if (file) {
+    data.uploadCV = file.path; // Add file path to the data object
+  }   
+  const date = new Date();  // current date and time
+  data. createdDate = date.toISOString();
+    
+       try {    
+        if (data.formType === 'other') {
+          const newCandidate = new Candidate({
+            other:  data 
+            
+          });
+            const savedCandidate = await newCandidate.save();
+            res.status(200).json(savedCandidate);
+        }else{
             const newCandidate = new Candidate({
               common: {
                 formType: data.formType,
@@ -60,7 +75,7 @@ const upload = multer({ storage });
             });
             
             const savedCandidate = await newCandidate.save();
-            res.status(200).json(savedCandidate);
+            res.status(200).json(savedCandidate);}
           } catch (error) {
             res.status(400).json({ error: error.message });
             console.log("Error in saving data : ",error);
@@ -69,7 +84,49 @@ const upload = multer({ storage });
    
   
   });
+
+ // Add Personal Tracker 
+router.post('/addpersonaltracker', upload.single('file'), async (req, res) => {
+  const file = req.file;
   
+  // Spread req.body into a new object and handle file upload
+  const data = { ...req.body };
+
+  if (file) {
+    data.uploadCV = file.path; // Add file path to the data object
+  }
+  
+  // Add created date
+  data.createdDate = Date.now();
+  
+  console.log('Uploaded file:', file);
+  console.log('Data to save:', data);
+
+  try {
+    // Create a new PersonalTracker instance with the data object
+    const user = new PersonalTracker(data);
+    
+    // Save the user to the database
+    await user.save();
+    
+    // Respond with the created user data
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Error occurred while adding personal tracker:', error);
+    res.status(500).json({ message: 'Error occurred while adding personal tracker' });
+  }
+});
+
+// get personal tracker
+router.get('/getpersonaltracker', async (req, res) => {
+  try {
+    const personalTracker = await PersonalTracker.find();
+    res.json(personalTracker);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
   // Get all candidates (GET request)
   router.get('/candidatesdata', async (req, res) => {
@@ -99,53 +156,117 @@ const upload = multer({ storage });
     const file = req.file;
     const data = req.body;
   
+    console.log("Incoming data:", data);
   
     try {
-        // Find the candidate by ID to retrieve existing data
-        const candidate = await Candidate.findById(req.params.id);
-        if (!candidate) {
-            return res.status(404).json({ error: 'Candidate not found' });
+      // Find the candidate by ID to retrieve existing data
+      const candidate = await Candidate.findById(req.params.id);
+      if (!candidate) {
+        return res.status(404).json({ error: 'Candidate not found' });
+      }
+  
+      // Merge incoming data with the existing data
+      const updatedData = {
+        common: {
+          formType: data.formType || candidate.common.formType,
+          name: data.name || candidate.common.name,
+          email: data.email || candidate.common.email,
+          mobileNo: data.mobileNo || candidate.common.mobileNo,
+          location: data.location || candidate.common.location,
+          qualification: data.qualification || candidate.common.qualification,
+          clientName: data.clientName || candidate.common.clientName,
+          position: data.position || candidate.common.position,
+          currentCompany: data.currentCompany || candidate.common.currentCompany,
+          overallExperience: data.overallExperience || candidate.common.overallExperience,
+          relevantExperience: data.relevantExperience || candidate.common.relevantExperience,
+          currentCTC: data.currentCTC || candidate.common.currentCTC,
+          expectedCTC: data.expectedCTC || candidate.common.expectedCTC,
+          noticePeriod: data.noticePeriod || candidate.common.noticePeriod,
+          interviewMode: data.interviewMode || candidate.common.interviewMode,
+          uploadCV: file ? file.path : candidate.common.uploadCV, // Handle file upload or keep existing one
+          remarksFirstRecruiter: data.remarksFirstRecruiter || candidate.common.remarksFirstRecruiter,
+          recruiterName: data.recruiterName || candidate.common.recruiterName,
+          recruiterId: data.recruiterId || candidate.common.recruiterId,
+          interviewStatus: data.interviewStatus || candidate.common.interviewStatus,
+          interviewdate: data.interviewdate || candidate.common.interviewdate,
+          interviewFinalStatus: data.interviewFinalStatus || candidate.common.interviewFinalStatus,
+          shortlistedDate: data.shortlistedDate || candidate.common.shortlistedDate,
+          offerStatus: data.offerStatus || candidate.common.offerStatus,
+          billValue: data.billValue || candidate.common.billValue,
+          offeredCTC: data.offeredCTC || candidate.common.offeredCTC,
+          joinedStatus: data.joinedStatus || candidate.common.joinedStatus,
+          joinedDate: data.joinedDate || candidate.common.joinedDate,
+          createdDate: candidate.common.createdDate, // Preserve the original created date
         }
-
-        // Construct updatedData object based on incoming data and existing values
-        const updatedData = {
-            common: {
-                formType: data.formType || candidate.common.formType,
-                name: data.name || candidate.common.name,
-                email: data.email || candidate.common.email,
-                mobileNo: data.phoneNumber || candidate.common.mobileNo,
-                location: data.location || candidate.common.location,
-                qualification: data.qualification || candidate.common.qualification,
-                clientName: data.clientName || candidate.common.clientName,
-                position: data.role || candidate.common.position,
-                currentCompany: data.currentCompany || candidate.common.currentCompany,
-                overallExperience: data.overAllExp || candidate.common.overallExperience,
-                relevantExperience: data.relevantExp || candidate.common.relevantExperience,
-                currentCTC: data.currentCtc || candidate.common.currentCTC,
-                expectedCTC: data.expectedCtc || candidate.common.expectedCTC,
-                noticePeriod: data.noticePeriod || candidate.common.noticePeriod,
-                interviewMode: data.interviewMode || candidate.common.interviewMode,
-                uploadCV: file ? file.path : candidate.common.uploadCV, // Keep existing file if no new one
-                remarksFirstRecruiter: data.remarks || candidate.common.remarksFirstRecruiter,
-                vendorName: data.vendorName || candidate.common.vendorName,
-                recruiterName: data.recruiterName || candidate.common.recruiterName,
-                recruiterId: data.recruiterId || candidate.common.recruiterId
-            },
-            // Only save if the field is "true", otherwise keep existing data
-            infosys: data.infosys === 'true' ? data.infosys : candidate.infosys,
-            wipro1: data.wipro1 === 'true' ? data.wipro1 : candidate.wipro1,
-            wipro2: data.wipro2 === 'true' ? data.wipro2 : candidate.wipro2,
-            accenture: data.accenture === 'true' ? data.accenture : candidate.accenture,
-        };
-
-        // Update the candidate with the new or existing data
-        const updatedCandidate = await Candidate.findByIdAndUpdate(req.params.id, updatedData, { new: true });
-        res.json(updatedCandidate);
+      };
+  
+      // Update the candidate with the new or existing data
+      const updatedCandidate = await Candidate.findByIdAndUpdate(
+        req.params.id,
+        { $set: updatedData },
+        { new: true }
+      );
+      
+      res.json(updatedCandidate);
     } catch (error) {
-        res.status(400).json({ error: error.message });
-        console.log("Error in Updating data: ", error);
+      res.status(400).json({ error: error.message });
+      console.log("Error in updating data: ", error);
     }
-});
+  });
+  
+  
+  
+
+  
+  // Update an existing personal tracker item by ID with file upload
+  router.put('/updatepersonaltracker/:id', upload.single('file'), async (req, res) => {
+    const { id } = req.params;
+    let updateFields = req.body;
+  
+    try {
+      // Find the item by ID before updating
+      const existingItem = await PersonalTracker.findById(id);
+  
+      if (!existingItem) {
+        return res.status(404).json({ message: 'Item not found' });
+      }
+  
+      // Check if a new file was uploaded
+      if (req.file) {
+        // If the existing item has a file, delete it from the server
+        if (existingItem.uploadCV) {
+          fs.unlink(existingItem.uploadCV, (err) => {
+            if (err) {
+              console.error("Error deleting existing file:", err);
+            } else {
+              console.log("Existing file deleted successfully");
+            }
+          });
+        }
+  
+        // Save the new file path in the database
+        updateFields.uploadCV = req.file.path;
+      }
+  
+      // Update the item in the database
+      const updatedItem = await PersonalTracker.findByIdAndUpdate(
+        id,
+        updateFields,
+        { new: true } // Return the updated document
+      );
+  
+      res.status(200).json({
+        message: 'Item updated successfully',
+        updatedItem,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+
+  
 
 
 
@@ -196,139 +317,240 @@ router.get('/download/:candidateId', async (req, res) => {
     }
   });
 
-  // PUT request to update interview status
+ // PUT request to update interview status
 router.put('/updatestatus/:id', async (req, res) => {
   try {
     const candidateId = req.params.id;
-    const { interviewStatus } = req.body;
-   
+    const { interviewStatus, uploadCV, } = req.body;
 
-    // Find the candidate by ID and update the interviewStatus
+    // Find the candidate by ID
     const candidate = await Candidate.findById(candidateId);
-    console.log("interview status :",candidate)
 
     if (!candidate) {
       return res.status(404).json({ message: 'Candidate not found' });
-    } else if (candidate) {
-      candidate.common.interviewStatus = interviewStatus;
-      candidate.common.interviewdate = new Date();
-      await candidate.save();
-      res.status(200).json({ message: 'Interview status updated successfully', candidate });
     }
-   
+
+    // Check if the form type is 'other'
+    if (candidate.other?.formType === 'other') {
+      const otherData={
+        interviewStatus:interviewStatus,  
+        
+      }
+      // Log and update the `other` object with incoming data
+      console.log("Other data:", otherData);
+       
+      // Preserve existing fields in `candidate.other` and update with new data
+      candidate.other = {
+        ...candidate.other, // Retain existing 'other' fields
+        ...otherData,     // Overwrite with new incoming data
+        uploadCV: req.file ? req.file.path : candidate.other.uploadCV // Handle file upload if present
+      };
+    } else {
+      // For `formType` other than 'other', update `common` fields
+      if (interviewStatus) {
+        candidate.common.interviewStatus = interviewStatus;
+        candidate.common.interviewdate = new Date(); // Update interview date
+      }
+    }
+
+    // Save the updated candidate data
+    await candidate.save();
+
+    // Respond with the updated candidate data
+    res.status(200).json({ message: 'Interview status updated successfully', candidate });
   } catch (error) {
     console.error('Error updating interview status:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
  // PUT request to update interview final status
  router.put('/updateinterviewfinalstatus/:id', async (req, res) => {
   try {
     const candidateId = req.params.id;
-    const { interviewFinalStatus,
-              remark1,
-              remark2,
-              interviewFinalRemark,  
-              remarksFirstRecruiter,
-              offerStatus,
-              shortlistforecast,
-              shortlistRemark,
-              offerReleasedDate,
-              billValue,
-              expectedDOJ,
-              joinedStatus,
-              joinedDate,
-              joinedshortlistStatus,
-              joinedSheetremarks,
-              droppedDate,
-              droppedshortlistStatus,
-              onHoldremarks,
-              onHoldDate,
-              onHoldshortlistStatus,
-              onHoldForecast,
-               offeredCTC,} = req.body;
-     console.log("interview final status :",req.body);
+    const {
+      formType,
+       interviewdate,
+       interviewTime,
+      interviewFinalStatus,
+      remark1,
+      remark2,
+      interviewFinalRemark,
+      remarksFirstRecruiter,
+      offerStatus,
+      shortlistforecast,
+      shortlistRemark,
+      offerReleasedDate,
+      billValue,
+      expectedDOJ,
+      joinedStatus,
+      joinedDate,
+      joinedshortlistStatus,
+      joinedSheetremarks,
+      droppedDate,
+      droppedshortlistStatus,
+      ShortlistRecruiterRemark,
+      onHoldremarks,
+      onHoldDate,
+      onHoldshortlistStatus,
+      onHoldForecast,
+      offeredCTC,
+    } = req.body;
 
+    console.log("Received data:", req.body);
 
-    // Find the candidate by ID and update the interviewStatus
+    // Find the candidate by ID
     const candidate = await Candidate.findById(candidateId);
-    
-
     if (!candidate) {
       return res.status(404).json({ message: 'Candidate not found' });
-    } else if (candidate) {
-      if( remarksFirstRecruiter){
-        candidate.common.remarksFirstRecruiter = remarksFirstRecruiter
+    }
+
+    // Update for formType 'other'
+    if (candidate.other?.formType === 'other') {
+      const { uploadCV, ...otherData } = req.body;
+      console.log("Other data:", otherData);
+    
+      candidate.other = {
+        ...candidate.other, // Retain existing 'other' fields
+        ...otherData,       // Overwrite with new incoming data
+        uploadCV: req.file ? req.file.path : candidate.other.uploadCV // Handle file upload if present
+      };
+    }
+    // Update for formType 'normal'
+   else {
+      if (remarksFirstRecruiter) {
+        candidate.common.remarksFirstRecruiter = remarksFirstRecruiter;
+      }
+      if (interviewdate) {
+        candidate.common.interviewdate = interviewdate;
+      }
+      if (interviewTime) {
+        candidate.common.interviewTime = interviewTime;
       }
       if (interviewFinalStatus) {
         candidate.common.interviewFinalStatus = interviewFinalStatus;
         candidate.common.shortlistedDate = new Date();
       }
-      
       if (remark1) {
         candidate.common.remark1 = remark1;
-      }if(remark2) {
+      }
+      if (remark2) {
         candidate.common.remark2 = remark2;
-      }if(interviewFinalRemark) {
+      }
+      if (interviewFinalRemark) {
         candidate.common.interviewFinalRemark = interviewFinalRemark;
-      }if(offerStatus) {
+      }
+      if (offerStatus) {
         candidate.common.offerStatus = offerStatus;
-      }if(shortlistforecast) {
+      }
+      if (shortlistforecast) {
         candidate.common.shortlistforecast = shortlistforecast;
-      }if(shortlistRemark) {
+      }
+      if (shortlistRemark) {
         candidate.common.shortlistRemark = shortlistRemark;
-      }if(offeredCTC) {
+      }
+      if (offeredCTC) {
         candidate.common.offeredCTC = offeredCTC;
-      }if(offerReleasedDate){
+      }
+      if (offerReleasedDate) {
         candidate.common.offerReleasedDate = offerReleasedDate;
-      }if(billValue){
+      }
+      if (billValue) {
         candidate.common.billValue = billValue;
-      }if(expectedDOJ){
+      }
+      if (expectedDOJ) {
         candidate.common.expectedDOJ = expectedDOJ;
-      }if(joinedStatus){
+      }
+      if (joinedStatus) {
         candidate.common.joinedStatus = joinedStatus;
-      }if(joinedDate){
+      }
+      if (joinedDate) {
         candidate.common.joinedDate = joinedDate;
-      }if(joinedshortlistStatus){
+      }
+      if (joinedshortlistStatus) {
         candidate.common.joinedshortlistStatus = joinedshortlistStatus;
-      }if(joinedSheetremarks){
+      }
+      if (joinedSheetremarks) {
         candidate.common.joinedSheetremarks = joinedSheetremarks;
-      }if(droppedDate){
+      }
+      if (droppedDate) {
         candidate.common.droppedDate = droppedDate;
-      }if(droppedshortlistStatus){
+      }
+      if (droppedshortlistStatus) {
         candidate.common.droppedshortlistStatus = droppedshortlistStatus;
-      }if(onHoldremarks){
+      }
+      if (onHoldremarks) {
         candidate.common.onHoldremarks = onHoldremarks;
-      }if(onHoldDate){
+      }
+      if (onHoldDate) {
         candidate.common.onHoldDate = onHoldDate;
-      }if(onHoldshortlistStatus){
+      }
+      if (onHoldshortlistStatus) {
         candidate.common.onHoldshortlistStatus = onHoldshortlistStatus;
-      }if(onHoldForecast){
+      }
+      if (onHoldForecast) {
         candidate.common.onHoldForecast = onHoldForecast;
       }
-     
-      await candidate.save();
-      res.status(200).json({ message: 'Interview status updated successfully', candidate });
+      if (ShortlistRecruiterRemark) {
+        candidate.common.ShortlistRecruiterRemark = ShortlistRecruiterRemark;
+      }
     }
-   
+
+    // Save the updated candidate
+    await candidate.save();
+    res.status(200).json({ message: 'Candidate updated successfully', candidate });
+
   } catch (error) {
     console.error('Error updating interview status:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
+
 // Show PDF
 router.get('/pdfs/:id', async (req, res) => {
-  console.log("show :",req.params)
+ 
   try {
     const { id } = req.params;
    
     const uploadedFile = await Candidate.findById(id);
+  
     if (!uploadedFile) {
       return res.status(404).send('File not found');
     }
-    res.sendFile(path.resolve(uploadedFile.common.uploadCV));
+    
+    if(uploadedFile.other?.formType === 'other'){
+      
+      res.sendFile(path.resolve(uploadedFile.other.uploadCV));
+    }else{
+      res.sendFile(path.resolve(uploadedFile.common.uploadCV));
+    }
+    
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});  
+
+// Show Personal Tracker PDF
+
+
+// Show PDF
+router.get('/personaltrackerpdfs/:id', async (req, res) => {
+ 
+  try {
+    const { id } = req.params;
+   
+    const uploadedFile = await PersonalTracker.findById(id);
+  
+    if (!uploadedFile) {
+      return res.status(404).send('File not found');
+    }
+  else{
+      res.sendFile(path.resolve(uploadedFile.uploadCV));
+    }
+    
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');
