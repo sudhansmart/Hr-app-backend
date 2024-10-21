@@ -23,7 +23,7 @@ const server = http.createServer(app);
 // Initialize Socket.IO with CORS configuration
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // Frontend URL
+    origin: "https://67163d9f4fb32910d5c23343--skyhrapp.netlify.app/", // Frontend URL
     methods: ["GET", "POST"],
   },
 });
