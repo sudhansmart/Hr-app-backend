@@ -189,6 +189,11 @@ router.get('/getpersonaltracker', async (req, res) => {
           recruiterId: data.recruiterId || candidate.common.recruiterId,
           interviewStatus: data.interviewStatus || candidate.common.interviewStatus,
           interviewdate: data.interviewdate || candidate.common.interviewdate,
+          interviewTime:  data.interviewTime || candidate.common.interviewTime,
+          remark1: data.remark1 || candidate.common.remark1,
+          remark2: data.remark2 || candidate.common.remark2,
+          interviewFinalRemark: data.interviewFinalRemark || candidate.common.interviewFinalRemark,
+          offerStatus: data.offerStatus || candidate.common.offerStatus,
           interviewFinalStatus: data.interviewFinalStatus || candidate.common.interviewFinalStatus,
           shortlistedDate: data.shortlistedDate || candidate.common.shortlistedDate,
           offerStatus: data.offerStatus || candidate.common.offerStatus,
@@ -196,7 +201,9 @@ router.get('/getpersonaltracker', async (req, res) => {
           offeredCTC: data.offeredCTC || candidate.common.offeredCTC,
           joinedStatus: data.joinedStatus || candidate.common.joinedStatus,
           joinedDate: data.joinedDate || candidate.common.joinedDate,
-          createdDate: candidate.common.createdDate, // Preserve the original created date
+          createdDate: candidate.common.createdDate, 
+          ShortlistRecruiterRemark : data.ShortlistRecruiterRemark || candidate.common.ShortlistRecruiterRemark,
+          lastUpdatedDate : new Date().toISOString(),
         }
       };
   
@@ -334,12 +341,9 @@ router.put('/updatestatus/:id', async (req, res) => {
     if (candidate.other?.formType === 'other') {
       const otherData={
         interviewStatus:interviewStatus,  
+        lastUpdatedDate : new Date().toISOString(),
         
       }
-      // Log and update the `other` object with incoming data
-      console.log("Other data:", otherData);
-       
-      // Preserve existing fields in `candidate.other` and update with new data
       candidate.other = {
         ...candidate.other, // Retain existing 'other' fields
         ...otherData,     // Overwrite with new incoming data
@@ -349,7 +353,8 @@ router.put('/updatestatus/:id', async (req, res) => {
       // For `formType` other than 'other', update `common` fields
       if (interviewStatus) {
         candidate.common.interviewStatus = interviewStatus;
-        candidate.common.interviewdate = new Date(); // Update interview date
+        candidate.common.interviewdate = new Date();
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
     }
 
@@ -409,91 +414,117 @@ router.put('/updatestatus/:id', async (req, res) => {
     // Update for formType 'other'
     if (candidate.other?.formType === 'other') {
       const { uploadCV, ...otherData } = req.body;
-      console.log("Other data:", otherData);
+     
     
       candidate.other = {
         ...candidate.other, // Retain existing 'other' fields
         ...otherData,       // Overwrite with new incoming data
-        uploadCV: req.file ? req.file.path : candidate.other.uploadCV // Handle file upload if present
+        uploadCV: req.file ? req.file.path : candidate.other.uploadCV ,
+        lastUpdatedDate : new Date().toISOString(),// Handle file upload if present
       };
     }
     // Update for formType 'normal'
    else {
       if (remarksFirstRecruiter) {
         candidate.common.remarksFirstRecruiter = remarksFirstRecruiter;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (interviewdate) {
         candidate.common.interviewdate = interviewdate;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (interviewTime) {
         candidate.common.interviewTime = interviewTime;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (interviewFinalStatus) {
         candidate.common.interviewFinalStatus = interviewFinalStatus;
         candidate.common.shortlistedDate = new Date();
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (remark1) {
         candidate.common.remark1 = remark1;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (remark2) {
         candidate.common.remark2 = remark2;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (interviewFinalRemark) {
         candidate.common.interviewFinalRemark = interviewFinalRemark;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (offerStatus) {
         candidate.common.offerStatus = offerStatus;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (shortlistforecast) {
         candidate.common.shortlistforecast = shortlistforecast;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (shortlistRemark) {
         candidate.common.shortlistRemark = shortlistRemark;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (offeredCTC) {
         candidate.common.offeredCTC = offeredCTC;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (offerReleasedDate) {
         candidate.common.offerReleasedDate = offerReleasedDate;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (billValue) {
         candidate.common.billValue = billValue;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (expectedDOJ) {
         candidate.common.expectedDOJ = expectedDOJ;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (joinedStatus) {
         candidate.common.joinedStatus = joinedStatus;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (joinedDate) {
         candidate.common.joinedDate = joinedDate;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (joinedshortlistStatus) {
         candidate.common.joinedshortlistStatus = joinedshortlistStatus;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (joinedSheetremarks) {
         candidate.common.joinedSheetremarks = joinedSheetremarks;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (droppedDate) {
         candidate.common.droppedDate = droppedDate;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (droppedshortlistStatus) {
         candidate.common.droppedshortlistStatus = droppedshortlistStatus;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (onHoldremarks) {
         candidate.common.onHoldremarks = onHoldremarks;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (onHoldDate) {
         candidate.common.onHoldDate = onHoldDate;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (onHoldshortlistStatus) {
         candidate.common.onHoldshortlistStatus = onHoldshortlistStatus;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (onHoldForecast) {
         candidate.common.onHoldForecast = onHoldForecast;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
       if (ShortlistRecruiterRemark) {
         candidate.common.ShortlistRecruiterRemark = ShortlistRecruiterRemark;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
       }
     }
 
