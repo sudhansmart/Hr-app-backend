@@ -49,6 +49,7 @@ const commonFieldsSchema = new mongoose.Schema({
     onHoldDate: { type: String },
     onHoldshortlistStatus: { type: String },
     onHoldForecast: { type: String },
+    lastUpdatedDate: { type: Date, default: Date.now }
 }, { _id: false });
 
 // Infosys fields schema
