@@ -401,6 +401,7 @@ router.put('/updatestatus/:id', async (req, res) => {
       onHoldshortlistStatus,
       onHoldForecast,
       offeredCTC,
+        billingStatus,
     } = req.body;
 
     console.log("Received data:", req.body);
@@ -524,6 +525,9 @@ router.put('/updatestatus/:id', async (req, res) => {
       }
       if (ShortlistRecruiterRemark) {
         candidate.common.ShortlistRecruiterRemark = ShortlistRecruiterRemark;
+        candidate.common.lastUpdatedDate = new Date().toISOString();
+      }if(billingStatus){
+        candidate.common.billingStatus = billingStatus;
         candidate.common.lastUpdatedDate = new Date().toISOString();
       }
     }
