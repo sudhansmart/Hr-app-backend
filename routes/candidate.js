@@ -374,37 +374,10 @@ router.put('/updatestatus/:id', async (req, res) => {
  router.put('/updateinterviewfinalstatus/:id', async (req, res) => {
   try {
     const candidateId = req.params.id;
-    const {
-      formType,
-       interviewdate,
-       interviewTime,
-      interviewFinalStatus,
-      remark1,
-      remark2,
-      interviewFinalRemark,
-      remarksFirstRecruiter,
-      offerStatus,
-      shortlistforecast,
-      shortlistRemark,
-      offerReleasedDate,
-      billValue,
-      expectedDOJ,
-      joinedStatus,
-      joinedDate,
-      joinedshortlistStatus,
-      joinedSheetremarks,
-      droppedDate,
-      droppedshortlistStatus,
-      ShortlistRecruiterRemark,
-      onHoldremarks,
-      onHoldDate,
-      onHoldshortlistStatus,
-      onHoldForecast,
-      offeredCTC,
-        billingStatus,
-    } = req.body;
+    const updateData = req.body;
 
-    console.log("Received data:", req.body);
+    console.log("Received data:", updateData);
+    console.log("Candidate ID:", candidateId);
 
     // Find the candidate by ID
     const candidate = await Candidate.findById(candidateId);
@@ -412,124 +385,56 @@ router.put('/updatestatus/:id', async (req, res) => {
       return res.status(404).json({ message: 'Candidate not found' });
     }
 
-    // Update for formType 'other'
+    // Check if the form type is 'other'
     if (candidate.other?.formType === 'other') {
-      const { uploadCV, ...otherData } = req.body;
-     
-    
+      const { uploadCV, ...otherData } = updateData;
+      console.log("Received other data:", otherData);
+
+      // Update the 'other' section
       candidate.other = {
-        ...candidate.other, // Retain existing 'other' fields
-        ...otherData,       // Overwrite with new incoming data
-        uploadCV: req.file ? req.file.path : candidate.other.uploadCV ,
-        lastUpdatedDate : new Date().toISOString(),// Handle file upload if present
+        ...candidate.other,
+        ...otherData,
+        uploadCV: req.file ? req.file.path : candidate.other.uploadCV,
+        lastUpdatedDate: new Date().toISOString(),
       };
-    }
-    // Update for formType 'normal'
-   else {
-      if (remarksFirstRecruiter) {
-        candidate.common.remarksFirstRecruiter = remarksFirstRecruiter;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
+
+      // Check if billingStatus is updated to 'raised' for 'other' type forms
+      if (updateData.billingStatus === 'raised') {
+        candidate.other.billedDate = new Date();
       }
-      if (interviewdate) {
-        candidate.common.interviewdate = interviewdate;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (interviewTime) {
-        candidate.common.interviewTime = interviewTime;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (interviewFinalStatus) {
-        candidate.common.interviewFinalStatus = interviewFinalStatus;
-        candidate.common.shortlistedDate = new Date();
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (remark1) {
-        candidate.common.remark1 = remark1;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (remark2) {
-        candidate.common.remark2 = remark2;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (interviewFinalRemark) {
-        candidate.common.interviewFinalRemark = interviewFinalRemark;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (offerStatus) {
-        candidate.common.offerStatus = offerStatus;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (shortlistforecast) {
-        candidate.common.shortlistforecast = shortlistforecast;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (shortlistRemark) {
-        candidate.common.shortlistRemark = shortlistRemark;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (offeredCTC) {
-        candidate.common.offeredCTC = offeredCTC;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (offerReleasedDate) {
-        candidate.common.offerReleasedDate = offerReleasedDate;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (billValue) {
-        candidate.common.billValue = billValue;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (expectedDOJ) {
-        candidate.common.expectedDOJ = expectedDOJ;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (joinedStatus) {
-        candidate.common.joinedStatus = joinedStatus;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (joinedDate) {
-        candidate.common.joinedDate = joinedDate;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (joinedshortlistStatus) {
-        candidate.common.joinedshortlistStatus = joinedshortlistStatus;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (joinedSheetremarks) {
-        candidate.common.joinedSheetremarks = joinedSheetremarks;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (droppedDate) {
-        candidate.common.droppedDate = droppedDate;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (droppedshortlistStatus) {
-        candidate.common.droppedshortlistStatus = droppedshortlistStatus;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (onHoldremarks) {
-        candidate.common.onHoldremarks = onHoldremarks;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (onHoldDate) {
-        candidate.common.onHoldDate = onHoldDate;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (onHoldshortlistStatus) {
-        candidate.common.onHoldshortlistStatus = onHoldshortlistStatus;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (onHoldForecast) {
-        candidate.common.onHoldForecast = onHoldForecast;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
-      if (ShortlistRecruiterRemark) {
-        candidate.common.ShortlistRecruiterRemark = ShortlistRecruiterRemark;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }if(billingStatus){
-        candidate.common.billingStatus = billingStatus;
-        candidate.common.lastUpdatedDate = new Date().toISOString();
-      }
+
+    } else {
+      // For 'common' type forms
+      const fieldsToUpdate = [
+        'formType', 'interviewdate', 'interviewTime', 'interviewFinalStatus', 
+        'remark1', 'remark2', 'interviewFinalRemark', 'remarksFirstRecruiter', 
+        'offerStatus', 'shortlistforecast', 'shortlistRemark', 'offerReleasedDate', 
+        'offeredCTC', 'billValue', 'expectedDOJ', 'joinedStatus', 'joinedDate', 
+        'joinedshortlistStatus', 'joinedSheetremarks', 'droppedDate', 
+        'droppedshortlistStatus', 'ShortlistRecruiterRemark', 'onHoldremarks', 
+        'onHoldDate', 'onHoldshortlistStatus', 'onHoldForecast', 
+        'billingStatus', 'billingPercentage', 'location', 'position', 'role','raisedStatus',
+        'invoiceNumber','invoiceDate','gstin','fees','cgst','sgst','igst','invoiceAmount',
+        'tds','receivableAmount','receivedDate','balanceAmount','auditReference','billingRemark'
+      ];
+
+      // Update only the fields present in the request body
+      fieldsToUpdate.forEach((field) => {
+        if (updateData[field] !== undefined) {
+          candidate.common[field] = updateData[field];
+          candidate.common.lastUpdatedDate = new Date().toISOString();
+
+          // Update shortlistedDate if interviewFinalStatus changes
+          if (field === 'interviewFinalStatus') {
+            candidate.common.shortlistedDate = new Date();
+          }
+
+          // Check if billingStatus is updated to 'raised' for 'common' type forms
+          if (field === 'billingStatus' && updateData[field] === 'raised') {
+            candidate.common.billedDate = new Date();
+          }
+        }
+      });
     }
 
     // Save the updated candidate
@@ -541,6 +446,9 @@ router.put('/updatestatus/:id', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+
+
 
 
 // Show PDF
