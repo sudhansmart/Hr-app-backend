@@ -57,6 +57,10 @@ const PersonalTrackerSchema = new mongoose.Schema({
     uploadCV: { 
         type: String
      },
+     lastWorkingDay: {
+        type: Date
+     },
+     
 })
 
 const PersonalTracker = mongoose.model('PersonalTracker', PersonalTrackerSchema);

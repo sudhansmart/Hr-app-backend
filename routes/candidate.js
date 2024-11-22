@@ -99,8 +99,7 @@ router.post('/addpersonaltracker', upload.single('file'), async (req, res) => {
   // Add created date
   data.createdDate = Date.now();
   
-  console.log('Uploaded file:', file);
-  console.log('Data to save:', data);
+
 
   try {
     // Create a new PersonalTracker instance with the data object
@@ -377,7 +376,7 @@ router.put('/updatestatus/:id', async (req, res) => {
     const updateData = req.body;
 
     console.log("Received data:", updateData);
-    console.log("Candidate ID:", candidateId);
+   
 
     // Find the candidate by ID
     const candidate = await Candidate.findById(candidateId);
