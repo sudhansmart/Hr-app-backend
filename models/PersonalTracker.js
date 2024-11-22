@@ -44,6 +44,12 @@ const PersonalTrackerSchema = new mongoose.Schema({
     remarks: {
         type: String
     },
+    qualification: {
+        type: String
+    },
+    gender: {
+        type:String
+    },
     skills:{
         type: String
     },
