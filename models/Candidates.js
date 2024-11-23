@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+ 
 // Common fields schema
 const commonFieldsSchema = new mongoose.Schema({
     createdDate : { type: Date, default: Date.now },
