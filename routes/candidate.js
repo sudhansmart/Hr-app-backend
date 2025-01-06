@@ -154,71 +154,119 @@ router.get('/getpersonaltracker', async (req, res) => {
   router.put('/updateCandidate/:id', upload.single('file'), async (req, res) => {
     const file = req.file;
     const data = req.body;
-  
+
     console.log("Incoming data:", data);
-  
+
     try {
-      // Find the candidate by ID to retrieve existing data
-      const candidate = await Candidate.findById(req.params.id);
-      if (!candidate) {
-        return res.status(404).json({ error: 'Candidate not found' });
-      }
-  
-      // Merge incoming data with the existing data
-      const updatedData = {
-        common: {
-          formType: data.formType || candidate.common.formType,
-          name: data.name || candidate.common.name,
-          email: data.email || candidate.common.email,
-          mobileNo: data.mobileNo || candidate.common.mobileNo,
-          location: data.location || candidate.common.location,
-          qualification: data.qualification || candidate.common.qualification,
-          clientName: data.clientName || candidate.common.clientName,
-          position: data.position || candidate.common.position,
-          currentCompany: data.currentCompany || candidate.common.currentCompany,
-          overallExperience: data.overallExperience || candidate.common.overallExperience,
-          relevantExperience: data.relevantExperience || candidate.common.relevantExperience,
-          currentCTC: data.currentCTC || candidate.common.currentCTC,
-          expectedCTC: data.expectedCTC || candidate.common.expectedCTC,
-          noticePeriod: data.noticePeriod || candidate.common.noticePeriod,
-          interviewMode: data.interviewMode || candidate.common.interviewMode,
-          uploadCV: file ? file.path : candidate.common.uploadCV, // Handle file upload or keep existing one
-          remarksFirstRecruiter: data.remarksFirstRecruiter || candidate.common.remarksFirstRecruiter,
-          recruiterName: data.recruiterName || candidate.common.recruiterName,
-          recruiterId: data.recruiterId || candidate.common.recruiterId,
-          interviewStatus: data.interviewStatus || candidate.common.interviewStatus,
-          interviewdate: data.interviewdate || candidate.common.interviewdate,
-          interviewTime:  data.interviewTime || candidate.common.interviewTime,
-          remark1: data.remark1 || candidate.common.remark1,
-          remark2: data.remark2 || candidate.common.remark2,
-          interviewFinalRemark: data.interviewFinalRemark || candidate.common.interviewFinalRemark,
-          offerStatus: data.offerStatus || candidate.common.offerStatus,
-          interviewFinalStatus: data.interviewFinalStatus || candidate.common.interviewFinalStatus,
-          shortlistedDate: data.shortlistedDate || candidate.common.shortlistedDate,
-          offerStatus: data.offerStatus || candidate.common.offerStatus,
-          billValue: data.billValue || candidate.common.billValue,
-          offeredCTC: data.offeredCTC || candidate.common.offeredCTC,
-          joinedStatus: data.joinedStatus || candidate.common.joinedStatus,
-          joinedDate: data.joinedDate || candidate.common.joinedDate,
-          createdDate: candidate.common.createdDate, 
-          ShortlistRecruiterRemark : data.ShortlistRecruiterRemark || candidate.common.ShortlistRecruiterRemark,
-          lastUpdatedDate : new Date().toISOString(),
+        // Find the candidate by ID to retrieve existing data
+        const candidate = await Candidate.findById(req.params.id);
+        if (!candidate) {
+            return res.status(404).json({ error: 'Candidate not found' });
         }
-      };
-  
-      // Update the candidate with the new or existing data
-      const updatedCandidate = await Candidate.findByIdAndUpdate(
-        req.params.id,
-        { $set: updatedData },
-        { new: true }
-      );
-      
-      res.json(updatedCandidate);
+
+        // Merge incoming data with the existing data
+        const updatedData = {
+            "common.formType": data.formType || candidate.common.formType,
+            "common.name": data.name || candidate.common.name,
+            "common.email": data.email || candidate.common.email,
+            "common.mobileNo": data.mobileNo? data.mobileNo : data.phoneNumber || candidate.common.mobileNo,
+            "common.location": data.location || candidate.common.location,
+            "common.qualification": data.qualification || candidate.common.qualification,
+            "common.clientName": data.clientName || candidate.common.clientName,
+            "common.position": data.position? data.position :data.role || candidate.common.position,
+            "common.currentCompany": data.currentCompany || candidate.common.currentCompany,
+            "common.overallExperience": data.overallExperience || candidate.common.overallExperience,
+            "common.relevantExperience": data.relevantExperience || candidate.common.relevantExperience,
+            "common.currentCTC": data.currentCTC || candidate.common.currentCTC,
+            "common.expectedCTC": data.expectedCTC || candidate.common.expectedCTC,
+            "common.noticePeriod": data.noticePeriod || candidate.common.noticePeriod,
+            "common.interviewMode": data.interviewMode || candidate.common.interviewMode,
+            "common.uploadCV": file ? file.path : candidate.common.uploadCV, // Handle file upload or keep existing one
+            "common.remarksFirstRecruiter": data.remarksFirstRecruiter || candidate.common.remarksFirstRecruiter,
+            "common.recruiterName": data.recruiterName || candidate.common.recruiterName,
+            "common.recruiterId": data.recruiterId || candidate.common.recruiterId,
+            "common.interviewStatus": data.interviewStatus || candidate.common.interviewStatus,
+            "common.interviewdate": data.interviewdate || candidate.common.interviewdate,
+            "common.interviewTime": data.interviewTime || candidate.common.interviewTime,
+            "common.remark1": data.remark1 || candidate.common.remark1,
+            "common.remark2": data.remark2 || candidate.common.remark2,
+            "common.interviewFinalRemark": data.interviewFinalRemark || candidate.common.interviewFinalRemark,
+            "common.offerStatus": data.offerStatus || candidate.common.offerStatus,
+            "common.interviewFinalStatus": data.interviewFinalStatus || candidate.common.interviewFinalStatus,
+            "common.shortlistedDate": data.shortlistedDate || candidate.common.shortlistedDate,
+            "common.billValue": data.billValue || candidate.common.billValue,
+            "common.offeredCTC": data.offeredCTC || candidate.common.offeredCTC,
+            "common.joinedStatus": data.joinedStatus || candidate.common.joinedStatus,
+            "common.joinedDate": data.joinedDate || candidate.common.joinedDate,
+            "common.createdDate": candidate.common.createdDate, // Keep original creation date
+            "common.ShortlistRecruiterRemark": data.ShortlistRecruiterRemark || candidate.common.ShortlistRecruiterRemark,
+            "common.lastUpdatedDate": new Date().toISOString(),
+        };
+
+        if (data.clientName.toLowerCase() === 'infosys') {
+          const infosys = data.infosys;
+          updatedData["infosys.candidateID"] = infosys.candidateID;
+          updatedData["infosys.jobLevel"] = infosys.jobLevel;
+          updatedData["infosys.preferredLocation"] = infosys.preferredLocation;
+          updatedData["infosys.communicationRating"] = parseInt(infosys.communicationRating);
+          updatedData["infosys.university"] = infosys.university;
+          updatedData["infosys.shift24x7"] = infosys.shift24x7 ;
+          updatedData["infosys.percentage"] = parseFloat(infosys.percentage);
+          updatedData["infosys.dob"] = new Date(infosys.dob);
+        }
+
+        else if (data.clientName.toLowerCase() === 'wipro1') {
+          const wipro1 = data.wipro1;
+          updatedData["wipro1.jobCode"] = wipro1.jobCode;
+          updatedData["wipro1.resumeId"] = wipro1.resumeId;
+          updatedData["wipro1.skill"] = wipro1.skill;
+          updatedData["wipro1.totalExp"] = wipro1.totalExp;
+          updatedData["wipro1.relevantExp"] = wipro1.relevantExp;
+          updatedData["wipro1.preferredLocation"] = wipro1.preferredLocation;
+          updatedData["wipro1.payrollOrg"] = wipro1.payrollOrg;
+        }
+        else if (data.clientName.toLowerCase() === 'wipro2') {
+          const wipro2 = data.wipro2;
+          updatedData["wipro2.jobCode"] = wipro2.jobCode;
+          updatedData["wipro2.resumeId"] = wipro2.resumeId;
+          updatedData["wipro2.skill"] = wipro2.skill;
+          updatedData["wipro2.totalExp"] = wipro2.totalExp;
+          updatedData["wipro2.relevantExp"] = wipro2.relevantExp;
+          updatedData["wipro2.preferredLocation"] = wipro2.preferredLocation;
+          updatedData["wipro2.payrollOrg"] = wipro2.payrollOrg;
+        }
+        else if (data.clientName.toLowerCase() === 'accenture') {
+          const accenture = data.accenture;
+          updatedData["accenture.cl"] = accenture.cl;
+          updatedData["accenture.cid"] = accenture.cid;
+          updatedData["accenture.gender"] = accenture.gender;
+          updatedData["accenture.role"] = accenture.role;
+          updatedData["accenture.primarySkill"] = accenture.primarySkill;
+          updatedData["accenture.fatherName"] = accenture.fatherName;
+          updatedData["accenture.city"] = accenture.city;
+          updatedData["accenture.address"] = accenture.address;
+          updatedData["accenture.pincode"] = accenture.pincode;
+          updatedData["accenture.sourceNameVendor"] = accenture.sourceNameVendor;
+        } 
+
+        // Update the candidate with the new or existing data
+        const updatedCandidate = await Candidate.findByIdAndUpdate(
+            req.params.id,
+            { $set: updatedData },
+            { new: true }
+        );
+
+        if (!updatedCandidate) {
+            return res.status(404).json({ error: 'Update failed, candidate not found' });
+        }
+
+        res.json(updatedCandidate);
+        console.log("Candidate data updated successfully:", updatedCandidate);
     } catch (error) {
-      res.status(400).json({ error: error.message });
-      console.log("Error in updating data: ", error);
+        res.status(500).json({ error: error.message });
+        console.error("Error in updating data:", error);
     }
-  });
+});
   
   
   
@@ -498,6 +546,64 @@ router.get('/personaltrackerpdfs/:id', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });  
+
+router.put('/api/clients/update', async (req, res) => {
+  const { oldClientName, newClientName } = req.body;
+
+  if (!oldClientName || !newClientName) {
+    return res.status(400).json({ message: 'Both oldClientName and newClientName are required' });
+  }
+
+ 
+    
+  try {
+    const result = await Candidate.updateMany(
+      { "common.clientName": oldClientName }, // Filter to find all matching documents
+      { $set: { "common.clientName": newClientName } } // Update clientName field
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: 'No clients found with the specified name' });
+    }
+
+    res.status(200).json({
+      message: 'Client names updated successfully',
+      matchedCount: result.matchedCount, // Number of matched documents
+      modifiedCount: result.modifiedCount, // Number of modified documents
+    });
+  } catch (error) {
+    console.error('Error updating client name:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+router.put('/api/position/update', async (req, res) => {
+  const { clientName, oldposition, newposition } = req.body;
+
+  if (!clientName || !oldposition || !newposition) {
+    return res.status(400).json({ message: 'clientName, oldposition, and newposition are required' });
+  }
+
+  try {
+    const result = await Candidate.updateMany(
+      { "common.clientName": clientName, "common.position": oldposition }, // Filter by clientName and oldposition
+      { $set: { "common.position": newposition } } // Update the position field
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: 'No matching clients or positions found' });
+    }
+
+    res.status(200).json({
+      message: 'Position updated successfully',
+      matchedCount: result.matchedCount, // Number of matched documents
+      modifiedCount: result.modifiedCount, // Number of modified documents
+    });
+  } catch (error) {
+    console.error('Error updating position:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 
 
 

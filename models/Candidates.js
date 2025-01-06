@@ -38,7 +38,7 @@ const commonFieldsSchema = new mongoose.Schema({
     shortlistforecast: { type: String },
     offeredCTC: { type: Number },
     billValue: { type: Number },
-    expectedDOJ: { type: String },
+    expectedDOJ: { type: Date },
     joinedStatus: { type: String },
     joinedDate: { type: String },
     joinedshortlistStatus: { type: String },
